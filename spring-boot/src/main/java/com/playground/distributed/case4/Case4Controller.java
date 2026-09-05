@@ -3,7 +3,11 @@ package com.playground.distributed.case4;
 import com.playground.distributed.config.AppConfig;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case4")
@@ -18,8 +22,8 @@ public class Case4Controller {
     }
 
     @PostMapping("/external/fault")
-    public Map<String, Object> setFault(@RequestBody Map<String, Boolean> body) {
-        boolean healthy = body.getOrDefault("is_healthy", true);
+    public Map<String, Object> setFault(@RequestBody(required = false) Map<String, Boolean> body) {
+        boolean healthy = body != null ? body.getOrDefault("is_healthy", true) : true;
         resilienceService.setHealthy(healthy);
         return Map.of(
                 "message",

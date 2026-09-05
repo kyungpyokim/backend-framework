@@ -28,10 +28,11 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    jvmArgs('-Xshare:off')
 }
 
 tasks.withType(JavaCompile) {
-    options.compilerArgs << "-Xlint:unchecked"
+    options.compilerArgs << "-Xlint:all"
 }
 
 spotless {
