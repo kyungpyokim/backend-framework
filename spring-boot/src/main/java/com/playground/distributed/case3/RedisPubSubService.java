@@ -10,6 +10,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressWarnings("null")
 public class RedisPubSubService implements MessageListener {
 
     private static final String CHANNEL_PREFIX = "ws:room:";

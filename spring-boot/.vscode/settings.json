@@ -1,0 +1,6 @@
+{
+  "java.compile.nullAnalysis.mode": "disabled",
+  "[java]": {
+    "editor.formatOnSave": true
+  }
+}

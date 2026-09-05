@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressWarnings("null")
 public class ResilienceService {
 
     private final CircuitBreaker circuitBreaker = new CircuitBreaker();

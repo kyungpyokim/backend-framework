@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressWarnings("null")
 public class JobQueueService {
 
     public static final String STREAM_NAME = "stream:jobs";

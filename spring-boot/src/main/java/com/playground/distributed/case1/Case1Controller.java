@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case1")
+@SuppressWarnings("null")
 public class Case1Controller {
 
     private final DistributedLockService lockService;

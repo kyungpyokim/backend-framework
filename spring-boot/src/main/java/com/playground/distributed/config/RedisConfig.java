@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 @Configuration
+@SuppressWarnings("null")
 public class RedisConfig {
 
     @Bean

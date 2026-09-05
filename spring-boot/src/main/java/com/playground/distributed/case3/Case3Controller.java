@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case3")
+@SuppressWarnings("null")
 public class Case3Controller {
 
     private final RedisPubSubService pubSubService;
@@ -20,10 +21,12 @@ public class Case3Controller {
     }
 
     @PostMapping("/broadcast")
-    public Map<String, Object> broadcast(@RequestBody Map<String, String> body) {
-        String roomId = body.get("room_id");
-        String sender = body.get("sender");
-        String content = body.get("content");
+    public Map<String, Object> broadcast(@RequestBody(required = false) Map<String, String> body) {
+        String roomId =
+                body != null && body.containsKey("room_id") ? body.get("room_id") : "general";
+        String sender =
+                body != null && body.containsKey("sender") ? body.get("sender") : "anonymous";
+        String content = body != null && body.containsKey("content") ? body.get("content") : "";
 
         String msg =
                 String.format(

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case2")
+@SuppressWarnings({"null", "unchecked"})
 public class Case2Controller {
 
     private final JobQueueService queueService;
@@ -23,7 +24,6 @@ public class Case2Controller {
         this.appConfig = appConfig;
     }
 
-    @SuppressWarnings("unchecked")
     @PostMapping("/jobs")
     public ResponseEntity<Map<String, Object>> submitJob(
             @RequestBody(required = false) Map<String, Object> body) {

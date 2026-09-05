@@ -14,6 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Component
+@SuppressWarnings("null")
 public class WebSocketChatHandler extends TextWebSocketHandler {
 
     private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();

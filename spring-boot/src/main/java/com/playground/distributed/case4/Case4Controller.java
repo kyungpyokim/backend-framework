@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case4")
+@SuppressWarnings("null")
 public class Case4Controller {
 
     private final ResilienceService resilienceService;

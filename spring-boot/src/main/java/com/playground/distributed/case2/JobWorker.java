@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings({"null", "unchecked"})
 public class JobWorker {
 
     private final JobQueueService queueService;
@@ -25,7 +26,6 @@ public class JobWorker {
         this.workerId = appConfig.getNodeId() + "-worker";
     }
 
-    @SuppressWarnings("unchecked")
     @Scheduled(fixedDelay = 2000)
     public void processStream() {
         queueService.ensureConsumerGroup();

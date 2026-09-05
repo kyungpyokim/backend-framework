@@ -7,7 +7,10 @@ Thumbs.db
 !.idea/codeStyles/
 spring-boot/.idea/*
 !spring-boot/.idea/codeStyles/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+spring-boot/.vscode/*
+!spring-boot/.vscode/settings.json
 *.swp
 *.swo
 
