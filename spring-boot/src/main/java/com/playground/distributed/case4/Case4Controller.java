@@ -1,10 +1,9 @@
 package com.playground.distributed.case4;
 
 import com.playground.distributed.config.AppConfig;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/case4")
@@ -23,19 +22,19 @@ public class Case4Controller {
         boolean healthy = body.getOrDefault("is_healthy", true);
         resilienceService.setHealthy(healthy);
         return Map.of(
-            "message", "External service healthy status set to: " + healthy,
-            "is_healthy", healthy
-        );
+                "message",
+                "External service healthy status set to: " + healthy,
+                "is_healthy",
+                healthy);
     }
 
     @GetMapping("/call")
     public Map<String, Object> callExternal() {
         Map<String, Object> result = resilienceService.callExternalService();
         return Map.of(
-            "node_id", appConfig.getNodeId(),
-            "circuit_state", resilienceService.getState().name(),
-            "result", result
-        );
+                "node_id", appConfig.getNodeId(),
+                "circuit_state", resilienceService.getState().name(),
+                "result", result);
     }
 
     @GetMapping("/circuit-status")

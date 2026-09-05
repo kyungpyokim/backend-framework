@@ -1,14 +1,13 @@
 package com.playground.distributed.case3;
 
 import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
-
-import java.nio.charset.StandardCharsets;
 
 @Service
 public class RedisPubSubService implements MessageListener {
@@ -19,9 +18,10 @@ public class RedisPubSubService implements MessageListener {
     private final RedisMessageListenerContainer listenerContainer;
     private final WebSocketChatHandler chatHandler;
 
-    public RedisPubSubService(StringRedisTemplate redisTemplate,
-                              RedisMessageListenerContainer listenerContainer,
-                              WebSocketChatHandler chatHandler) {
+    public RedisPubSubService(
+            StringRedisTemplate redisTemplate,
+            RedisMessageListenerContainer listenerContainer,
+            WebSocketChatHandler chatHandler) {
         this.redisTemplate = redisTemplate;
         this.listenerContainer = listenerContainer;
         this.chatHandler = chatHandler;
@@ -31,13 +31,15 @@ public class RedisPubSubService implements MessageListener {
     public void init() {
         try {
             listenerContainer.addMessageListener(this, new PatternTopic(CHANNEL_PREFIX + "*"));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public void publish(String roomId, String jsonMessage) {
         try {
             redisTemplate.convertAndSend(CHANNEL_PREFIX + roomId, jsonMessage);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     @Override

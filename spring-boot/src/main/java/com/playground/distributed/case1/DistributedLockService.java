@@ -1,13 +1,12 @@
 package com.playground.distributed.case1;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.stereotype.Service;
 
 @Service
 public class DistributedLockService {
@@ -15,11 +14,11 @@ public class DistributedLockService {
     private final StringRedisTemplate redisTemplate;
 
     private static final String RELEASE_LOCK_LUA =
-        "if redis.call('get', KEYS[1]) == ARGV[1] then " +
-        "    return redis.call('del', KEYS[1]) " +
-        "else " +
-        "    return 0 " +
-        "end";
+            "if redis.call('get', KEYS[1]) == ARGV[1] then "
+                    + "    return redis.call('del', KEYS[1]) "
+                    + "else "
+                    + "    return 0 "
+                    + "end";
 
     private final DefaultRedisScript<Long> releaseScript;
 
@@ -33,8 +32,10 @@ public class DistributedLockService {
         String lockKey = "lock:" + resource;
 
         for (int i = 0; i < maxRetries; i++) {
-            Boolean acquired = redisTemplate.opsForValue()
-                .setIfAbsent(lockKey, token, Duration.ofMillis(ttlMs));
+            Boolean acquired =
+                    redisTemplate
+                            .opsForValue()
+                            .setIfAbsent(lockKey, token, Duration.ofMillis(ttlMs));
             if (Boolean.TRUE.equals(acquired)) {
                 return token;
             }
@@ -50,7 +51,8 @@ public class DistributedLockService {
 
     public boolean releaseLock(String resource, String token) {
         String lockKey = "lock:" + resource;
-        Long result = redisTemplate.execute(releaseScript, Collections.singletonList(lockKey), token);
+        Long result =
+                redisTemplate.execute(releaseScript, Collections.singletonList(lockKey), token);
         return result != null && result == 1L;
     }
 
@@ -72,10 +74,14 @@ public class DistributedLockService {
         try {
             int currentStock = getInventory(itemId);
             if (currentStock < quantity) {
-                return Map.of("success", false, "message", "Out of stock", "remaining", currentStock);
+                return Map.of(
+                        "success", false, "message", "Out of stock", "remaining", currentStock);
             }
             // Artificial delay to simulate DB latency
-            try { Thread.sleep(10); } catch (InterruptedException ignored) {}
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ignored) {
+            }
             int newStock = currentStock - quantity;
             redisTemplate.opsForValue().set("stock:" + itemId, String.valueOf(newStock));
             return Map.of("success", true, "message", "Purchase successful", "remaining", newStock);
@@ -90,7 +96,10 @@ public class DistributedLockService {
             return Map.of("success", false, "message", "Out of stock", "remaining", currentStock);
         }
         // Race condition window
-        try { Thread.sleep(10); } catch (InterruptedException ignored) {}
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException ignored) {
+        }
         int newStock = currentStock - quantity;
         redisTemplate.opsForValue().set("stock:" + itemId, String.valueOf(newStock));
         return Map.of("success", true, "message", "Purchase successful", "remaining", newStock);

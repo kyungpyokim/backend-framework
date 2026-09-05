@@ -1,9 +1,8 @@
 package com.playground.distributed.case4;
 
-import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ResilienceService {
@@ -21,18 +20,19 @@ public class ResilienceService {
 
     public Map<String, Object> callExternalService() {
         return circuitBreaker.execute(
-            () -> {
-                if (!isHealthy) {
-                    throw new RuntimeException("External Payment Gateway is unreachable (503 Service Unavailable)");
-                }
-                return Map.of("status", "SUCCESS", "tx_id", "tx_mock_9999", "amount", 1000);
-            },
-            () -> Map.of(
-                "status", "FALLBACK",
-                "message", "Payment system temporarily unavailable. Queued for offline processing.",
-                "fallback_used", true
-            )
-        );
+                () -> {
+                    if (!isHealthy) {
+                        throw new RuntimeException(
+                                "External Payment Gateway is unreachable (503 Service Unavailable)");
+                    }
+                    return Map.of("status", "SUCCESS", "tx_id", "tx_mock_9999", "amount", 1000);
+                },
+                () ->
+                        Map.of(
+                                "status", "FALLBACK",
+                                "message",
+                                        "Payment system temporarily unavailable. Queued for offline processing.",
+                                "fallback_used", true));
     }
 
     public Map<String, Object> getCircuitStatus() {

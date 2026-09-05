@@ -1,24 +1,5 @@
 package com.playground.distributed;
 
-import com.playground.distributed.case4.CircuitBreaker;
-import com.playground.distributed.case4.ResilienceService;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,24 +7,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.playground.distributed.case4.ResilienceService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class DistributedApplicationTests {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private RedisConnectionFactory redisConnectionFactory;
+    @MockBean private RedisConnectionFactory redisConnectionFactory;
 
-    @MockBean
-    private RedisMessageListenerContainer redisMessageListenerContainer;
+    @MockBean private RedisMessageListenerContainer redisMessageListenerContainer;
 
-    @MockBean
-    private StringRedisTemplate redisTemplate;
+    @MockBean private StringRedisTemplate redisTemplate;
 
-    @Autowired
-    private ResilienceService resilienceService;
+    @Autowired private ResilienceService resilienceService;
 
     @Test
     void testHealthEndpoint() throws Exception {
@@ -62,9 +51,10 @@ class DistributedApplicationTests {
                 .andExpect(jsonPath("$.result.status").value("SUCCESS"));
 
         // 2. Inject Fault
-        mockMvc.perform(post("/case4/external/fault")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"is_healthy\": false}"))
+        mockMvc.perform(
+                        post("/case4/external/fault")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"is_healthy\": false}"))
                 .andExpect(status().isOk());
 
         // 3. Trigger 3 failures
@@ -80,9 +70,10 @@ class DistributedApplicationTests {
                 .andExpect(jsonPath("$.state").value("OPEN"));
 
         // 5. Restore Health
-        mockMvc.perform(post("/case4/external/fault")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"is_healthy\": true}"))
+        mockMvc.perform(
+                        post("/case4/external/fault")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"is_healthy\": true}"))
                 .andExpect(status().isOk());
     }
 
@@ -92,9 +83,10 @@ class DistributedApplicationTests {
         ValueOperations<String, String> ops = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(ops);
 
-        mockMvc.perform(post("/case1/inventory/init")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"item_id\": \"item-spring-1\", \"stock\": 10}"))
+        mockMvc.perform(
+                        post("/case1/inventory/init")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"item_id\": \"item-spring-1\", \"stock\": 10}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock").value(10));
     }

@@ -1,18 +1,17 @@
 package com.playground.distributed.case3;
 
 import com.playground.distributed.config.AppConfig;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class WebSocketChatHandler extends TextWebSocketHandler {
@@ -45,10 +44,11 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         rooms.computeIfAbsent(room, k -> ConcurrentHashMap.newKeySet()).add(session);
         session.getAttributes().put("room", room);
 
-        pubSubService.publish(room, String.format(
-            "{\"type\":\"system\",\"message\":\"New user connected to room '%s' via node [%s]\",\"node_id\":\"%s\"}",
-            room, appConfig.getNodeId(), appConfig.getNodeId()
-        ));
+        pubSubService.publish(
+                room,
+                String.format(
+                        "{\"type\":\"system\",\"message\":\"New user connected to room '%s' via node [%s]\",\"node_id\":\"%s\"}",
+                        room, appConfig.getNodeId(), appConfig.getNodeId()));
     }
 
     @Override
@@ -56,10 +56,11 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         String room = (String) session.getAttributes().get("room");
         if (room != null && rooms.containsKey(room)) {
             rooms.get(room).remove(session);
-            pubSubService.publish(room, String.format(
-                "{\"type\":\"system\",\"message\":\"User disconnected from room '%s' on node [%s]\",\"node_id\":\"%s\"}",
-                room, appConfig.getNodeId(), appConfig.getNodeId()
-            ));
+            pubSubService.publish(
+                    room,
+                    String.format(
+                            "{\"type\":\"system\",\"message\":\"User disconnected from room '%s' on node [%s]\",\"node_id\":\"%s\"}",
+                            room, appConfig.getNodeId(), appConfig.getNodeId()));
         }
     }
 
@@ -67,10 +68,11 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         String room = (String) session.getAttributes().get("room");
         if (room != null) {
-            pubSubService.publish(room, String.format(
-                "{\"type\":\"chat\",\"content\":\"%s\",\"from_node\":\"%s\"}",
-                message.getPayload(), appConfig.getNodeId()
-            ));
+            pubSubService.publish(
+                    room,
+                    String.format(
+                            "{\"type\":\"chat\",\"content\":\"%s\",\"from_node\":\"%s\"}",
+                            message.getPayload(), appConfig.getNodeId()));
         }
     }
 
@@ -81,7 +83,8 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
                 if (s.isOpen()) {
                     try {
                         s.sendMessage(new TextMessage(message));
-                    } catch (IOException ignored) {}
+                    } catch (IOException ignored) {
+                    }
                 }
             }
         }

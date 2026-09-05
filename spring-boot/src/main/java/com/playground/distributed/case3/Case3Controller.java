@@ -1,12 +1,11 @@
 package com.playground.distributed.case3;
 
 import com.playground.distributed.config.AppConfig;
+import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/case3")
@@ -26,17 +25,14 @@ public class Case3Controller {
         String sender = body.get("sender");
         String content = body.get("content");
 
-        String msg = String.format(
-            "{\"type\":\"broadcast\",\"sender\":\"%s\",\"content\":\"%s\",\"origin_node\":\"%s\"}",
-            sender, content, appConfig.getNodeId()
-        );
+        String msg =
+                String.format(
+                        "{\"type\":\"broadcast\",\"sender\":\"%s\",\"content\":\"%s\",\"origin_node\":\"%s\"}",
+                        sender, content, appConfig.getNodeId());
 
         pubSubService.publish(roomId, msg);
 
         return Map.of(
-            "status", "published",
-            "room_id", roomId,
-            "origin_node", appConfig.getNodeId()
-        );
+                "status", "published", "room_id", roomId, "origin_node", appConfig.getNodeId());
     }
 }

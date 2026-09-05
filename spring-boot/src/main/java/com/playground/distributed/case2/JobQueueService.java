@@ -1,13 +1,12 @@
 package com.playground.distributed.case2;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class JobQueueService {
@@ -44,14 +43,16 @@ public class JobQueueService {
 
         redisTemplate.opsForHash().putAll("job:" + jobId, jobData);
 
-        Map<String, String> streamFields = Map.of(
-            "job_id", jobId,
-            "task_type", taskType
-        );
-        MapRecord<String, String, String> record = StreamRecords.string(streamFields).withStreamKey(STREAM_NAME);
+        Map<String, String> streamFields =
+                Map.of(
+                        "job_id", jobId,
+                        "task_type", taskType);
+        MapRecord<String, String, String> record =
+                StreamRecords.string(streamFields).withStreamKey(STREAM_NAME);
         try {
             redisTemplate.opsForStream().add(record);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return jobId;
     }

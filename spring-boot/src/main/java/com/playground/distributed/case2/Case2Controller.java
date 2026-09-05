@@ -1,11 +1,10 @@
 package com.playground.distributed.case2;
 
 import com.playground.distributed.config.AppConfig;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/case2")
@@ -21,18 +20,32 @@ public class Case2Controller {
 
     @SuppressWarnings("unchecked")
     @PostMapping("/jobs")
-    public ResponseEntity<Map<String, Object>> submitJob(@RequestBody(required = false) Map<String, Object> body) {
-        String taskType = body != null && body.containsKey("task_type") ? (String) body.get("task_type") : "heavy_computation";
-        Map<String, Object> payload = body != null && body.containsKey("payload") ? (Map<String, Object>) body.get("payload") : Map.of("duration_sec", 1);
+    public ResponseEntity<Map<String, Object>> submitJob(
+            @RequestBody(required = false) Map<String, Object> body) {
+        String taskType =
+                body != null && body.containsKey("task_type")
+                        ? (String) body.get("task_type")
+                        : "heavy_computation";
+        Map<String, Object> payload =
+                body != null && body.containsKey("payload")
+                        ? (Map<String, Object>) body.get("payload")
+                        : Map.of("duration_sec", 1);
 
         String jobId = queueService.enqueueJob(taskType, payload);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of(
-            "node_id", appConfig.getNodeId(),
-            "job_id", jobId,
-            "status", "PENDING",
-            "message", "Job accepted and enqueued. Poll GET /case2/jobs/" + jobId + " for status."
-        ));
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(
+                        Map.of(
+                                "node_id",
+                                appConfig.getNodeId(),
+                                "job_id",
+                                jobId,
+                                "status",
+                                "PENDING",
+                                "message",
+                                "Job accepted and enqueued. Poll GET /case2/jobs/"
+                                        + jobId
+                                        + " for status."));
     }
 
     @GetMapping("/jobs/{jobId}")

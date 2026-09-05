@@ -45,3 +45,13 @@ docker compose up --build
 - Nginx 로드밸런서: `http://localhost:8082`
 - API Node #1: `http://localhost:8083`
 - API Node #2: `http://localhost:8084`
+
+### 4) 코드 포맷팅 (Spotless + Google Java Format)
+```bash
+# 코드 자동 포맷팅 적용
+./gradlew spotlessApply
+
+# 포맷팅 위반 검사 (CI/CD)
+./gradlew spotlessCheck
+```
+

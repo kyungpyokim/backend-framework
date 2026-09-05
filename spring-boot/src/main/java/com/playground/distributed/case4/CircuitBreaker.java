@@ -6,7 +6,9 @@ import java.util.function.Supplier;
 public class CircuitBreaker {
 
     public enum State {
-        CLOSED, OPEN, HALF_OPEN
+        CLOSED,
+        OPEN,
+        HALF_OPEN
     }
 
     private State state = State.CLOSED;
@@ -73,10 +75,13 @@ public class CircuitBreaker {
 
     public synchronized Map<String, Object> getStatus() {
         return Map.of(
-            "state", getState().name(),
-            "failure_count", failureCount,
-            "failure_threshold", failureThreshold,
-            "recovery_timeout_sec", recoveryTimeoutMs / 1000.0
-        );
+                "state",
+                getState().name(),
+                "failure_count",
+                failureCount,
+                "failure_threshold",
+                failureThreshold,
+                "recovery_timeout_sec",
+                recoveryTimeoutMs / 1000.0);
     }
 }
