@@ -25,6 +25,7 @@ public class JobWorker {
         this.workerId = appConfig.getNodeId() + "-worker";
     }
 
+    @SuppressWarnings("unchecked")
     @Scheduled(fixedDelay = 2000)
     public void processStream() {
         queueService.ensureConsumerGroup();

@@ -19,6 +19,7 @@ public class Case2Controller {
         this.appConfig = appConfig;
     }
 
+    @SuppressWarnings("unchecked")
     @PostMapping("/jobs")
     public ResponseEntity<Map<String, Object>> submitJob(@RequestBody(required = false) Map<String, Object> body) {
         String taskType = body != null && body.containsKey("task_type") ? (String) body.get("task_type") : "heavy_computation";

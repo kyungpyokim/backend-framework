@@ -86,6 +86,7 @@ class DistributedApplicationTests {
                 .andExpect(status().isOk());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testCase1InventoryInit() throws Exception {
         ValueOperations<String, String> ops = mock(ValueOperations.class);

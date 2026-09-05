@@ -2,6 +2,7 @@ package com.playground.distributed.case1;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -30,11 +31,13 @@ public class RateLimiterService {
         "    return {0, 0} " +
         "end";
 
-    private final DefaultRedisScript<List> rateLimitScript;
+    private final RedisScript<List<Long>> rateLimitScript;
 
+    @SuppressWarnings("unchecked")
     public RateLimiterService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
-        this.rateLimitScript = new DefaultRedisScript<>(SLIDING_WINDOW_LUA, List.class);
+        DefaultRedisScript<?> script = new DefaultRedisScript<>(SLIDING_WINDOW_LUA, List.class);
+        this.rateLimitScript = (RedisScript<List<Long>>) script;
     }
 
     public Map<String, Object> checkLimit(String clientId, int limit, int windowSeconds) {
