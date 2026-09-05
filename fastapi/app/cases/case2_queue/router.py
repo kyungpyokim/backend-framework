@@ -12,11 +12,13 @@ RedisDep = Annotated[Redis, Depends(get_redis)]
 
 
 class CreateJobRequest(BaseModel):
+    """비동기 작업 생성 요청 DTO"""
     task_type: str = "heavy_computation"
     payload: dict[str, Any] = {"duration_sec": 2, "input_data": "sample_data"}
 
 
 class JobResponse(BaseModel):
+    """비동기 작업 상태 및 결과 응답 DTO"""
     node_id: str
     job_id: str
     status: str
@@ -28,6 +30,11 @@ class JobResponse(BaseModel):
 
 @router.post("/jobs", status_code=status.HTTP_202_ACCEPTED)
 async def submit_job(req: CreateJobRequest, redis: RedisDep) -> dict:
+    """
+    [작업 인큐] 새로운 비동기 백그라운드 작업을 큐에 등록합니다.
+    - HTTP 202 Accepted 응답과 함께 발급된 job_id를 반환합니다.
+    - 클라이언트는 반환된 ID로 작업 완료 여부를 비동기 폴링할 수 있습니다.
+    """
     service = JobQueueService(redis)
     job_id = await service.enqueue_job(req.task_type, req.payload)
     return {
@@ -40,6 +47,9 @@ async def submit_job(req: CreateJobRequest, redis: RedisDep) -> dict:
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def check_job(job_id: str, redis: RedisDep) -> JobResponse:
+    """
+    [작업 상태 조회] 작업의 진행 상태(PENDING, PROCESSING, COMPLETED, FAILED) 및 결과를 조회합니다.
+    """
     service = JobQueueService(redis)
     job = await service.get_job(job_id)
     if not job:

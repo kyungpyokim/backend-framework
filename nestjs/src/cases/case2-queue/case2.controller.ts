@@ -2,10 +2,18 @@ import { Body, Controller, Get, HttpException, HttpStatus, Param, Post } from '@
 import { config } from '../../config/configuration';
 import { QueueService } from './queue.service';
 
+/**
+ * Case 2: 비동기 작업 큐 및 워커 컨트롤러.
+ * - 신규 비동기 작업 제출 (인큐)
+ * - 작업 진행 상태 및 결과 비동기 폴링 조회
+ */
 @Controller('case2')
 export class Case2Controller {
   constructor(private readonly queueService: QueueService) {}
 
+  /**
+   * [작업 인큐] 새로운 비동기 백그라운드 작업을 등록하고 작업 ID를 발급합니다.
+   */
   @Post('jobs')
   async submitJob(@Body() body: { task_type?: string; payload?: any }) {
     const taskType = body.task_type || 'heavy_computation';
@@ -20,6 +28,9 @@ export class Case2Controller {
     };
   }
 
+  /**
+   * [작업 상태 조회] 작업의 현재 상태(PENDING/PROCESSING/COMPLETED/FAILED) 및 결과를 조회합니다.
+   */
   @Get('jobs/:jobId')
   async checkJob(@Param('jobId') jobId: string) {
     const job = await this.queueService.getJob(jobId);

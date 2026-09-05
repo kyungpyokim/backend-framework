@@ -13,10 +13,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Case 1: 무상태 수평 확장 및 분산 락 REST 컨트롤러.
+ * - 재고 초기화 및 조회
+ * - 분산 락 적용 안전 구매 (/case1/purchase/safe)
+ * - 락 미적용 취약 구매 (/case1/purchase/unsafe)
+ * - 슬라이딩 윈도우 처리율 제한 (/case1/rate-limit)
+ */
 @RestController
 @RequestMapping("/case1")
 public class Case1Controller {
 
+    /** 재고 초기화 요청 불변 Record DTO (Null Object 패턴 적용) */
     public record InventoryInitRequest(
             @JsonProperty("item_id") String itemId, @JsonProperty("stock") Integer stock) {
 
@@ -32,6 +40,7 @@ public class Case1Controller {
         }
     }
 
+    /** 구매 요청 불변 Record DTO (Null Object 패턴 적용) */
     public record PurchaseRequest(
             @JsonProperty("item_id") String itemId, @JsonProperty("quantity") Integer quantity) {
 
@@ -60,6 +69,7 @@ public class Case1Controller {
         this.appConfig = appConfig;
     }
 
+    /** 상품 재고 수량 초기화 */
     @PostMapping("/inventory/init")
     public Map<String, Object> initInventory(
             @RequestBody(required = false) InventoryInitRequest req) {
@@ -72,6 +82,7 @@ public class Case1Controller {
                 "message", "Inventory initialized");
     }
 
+    /** 현재 상품 재고 수량 조회 */
     @GetMapping("/inventory/{itemId}")
     public Map<String, Object> getInventory(@PathVariable String itemId) {
         int stock = lockService.getInventory(itemId);
@@ -81,6 +92,10 @@ public class Case1Controller {
                 "stock", stock);
     }
 
+    /**
+     * [동시성 안전] Redis 분산 락 기반 구매 처리.
+     * 락 획득 타임아웃 시 429 Too Many Requests 반환.
+     */
     @PostMapping("/purchase/safe")
     public ResponseEntity<Map<String, Object>> purchaseSafe(
             @RequestBody(required = false) PurchaseRequest req) {
@@ -100,6 +115,9 @@ public class Case1Controller {
                         "remaining_stock", res.remainingStock()));
     }
 
+    /**
+     * [동시성 취약] 분산 락 미적용 구매 처리 (Race Condition 학습 및 비교 시연용).
+     */
     @PostMapping("/purchase/unsafe")
     public ResponseEntity<Map<String, Object>> purchaseUnsafe(
             @RequestBody(required = false) PurchaseRequest req) {
@@ -113,6 +131,9 @@ public class Case1Controller {
                         "remaining_stock", res.remainingStock()));
     }
 
+    /**
+     * [처리율 제한] 슬라이딩 윈도우 알고리즘 테스트 (10초 내 5회 제한).
+     */
     @GetMapping("/rate-limit")
     public ResponseEntity<Map<String, Object>> checkRateLimit(
             @RequestParam(defaultValue = "client-default") String client_id) {

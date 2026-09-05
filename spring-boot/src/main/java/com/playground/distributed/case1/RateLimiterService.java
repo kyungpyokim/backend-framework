@@ -8,11 +8,16 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
+/**
+ * Redis Sorted Set(ZSET) 기반 분산 처리율 제한(Rate Limiter) 서비스.
+ * 슬라이딩 윈도우 알고리즘을 Lua 스크립트로 원자적으로 실행하여 요청 빈도를 제어합니다.
+ */
 @Service
 public class RateLimiterService {
 
     private final StringRedisTemplate redisTemplate;
 
+    // 만료 타임스탬프 정리, 요청 카운트, 신규 타임스탬프 등록을 원자적으로 수행하는 Lua 스크립트
     private static final String SLIDING_WINDOW_LUA =
             "local key = KEYS[1] "
                     + "local now = tonumber(ARGV[1]) "
@@ -38,6 +43,14 @@ public class RateLimiterService {
         this.rateLimitScript = (RedisScript<List<Long>>) script;
     }
 
+    /**
+     * 클라이언트 요청이 슬라이딩 윈도우 허용량 이내인지 검사합니다.
+     *
+     * @param clientId 클라이언트 식별자
+     * @param limit 윈도우 시간 내 허용 최대 요청 수
+     * @param windowSeconds 윈도우 크기 (초 단위)
+     * @return 허용 여부 및 잔여 횟수를 담은 RateLimitResult
+     */
     public RateLimitResult checkLimit(String clientId, int limit, int windowSeconds) {
         String key = "ratelimit:" + clientId;
         long nowMs = System.currentTimeMillis();

@@ -12,10 +12,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Case 2: 비동기 작업 큐 및 워커 REST 컨트롤러.
+ * - 신규 비동기 작업 제출 (/case2/jobs)
+ * - 작업 진행 상태 및 결과 조회 (/case2/jobs/{jobId})
+ */
 @RestController
 @RequestMapping("/case2")
 public class Case2Controller {
 
+    /** 작업 제출 요청 불변 Record DTO (Null Object 패턴 적용) */
     public record JobSubmitRequest(
             @JsonProperty("task_type") String taskType,
             @JsonProperty("payload") Map<String, Object> payload) {
@@ -40,6 +46,9 @@ public class Case2Controller {
         this.appConfig = appConfig;
     }
 
+    /**
+     * [작업 인큐] 새로운 비동기 백그라운드 작업을 등록하고 202 Accepted와 작업 ID를 반환합니다.
+     */
     @PostMapping("/jobs")
     public ResponseEntity<Map<String, Object>> submitJob(
             @RequestBody(required = false) JobSubmitRequest req) {
@@ -61,6 +70,9 @@ public class Case2Controller {
                                         + " for status."));
     }
 
+    /**
+     * [작업 상태 조회] 작업 ID로 상태(PENDING, PROCESSING, COMPLETED, FAILED) 및 결과를 조회합니다.
+     */
     @GetMapping("/jobs/{jobId}")
     public ResponseEntity<Map<Object, Object>> getJobStatus(@PathVariable String jobId) {
         Map<Object, Object> job = queueService.getJob(jobId);

@@ -13,9 +13,15 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+/**
+ * Spring 웹소켓 세션 관리 및 양방향 채팅 핸들러.
+ * - 클라이언트 접속/해제 시 로컬 ConcurrentHashMap에 세션 저장
+ * - 메시지 수신 시 RedisPubSubService를 통해 클러스터 전체 노드로 발행
+ */
 @Component
 public class WebSocketChatHandler extends TextWebSocketHandler {
 
+    // 방 ID -> 현재 서버 노드에 직접 연결된 WebSocket 세션 집합
     private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
     private final RedisPubSubService pubSubService;
     private final AppConfig appConfig;
@@ -25,6 +31,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         this.appConfig = appConfig;
     }
 
+    /** WebSocket 세션의 쿼리 스트링(?room=xxx)으로부터 방 ID 추출 */
     private String extractRoom(WebSocketSession session) {
         URI uri = session.getUri();
         if (uri != null && uri.getQuery() != null) {
@@ -38,6 +45,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         return "default";
     }
 
+    /** 웹소켓 연결 성공 시 방 세션 등록 및 입장 시스템 메시지 발행 */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         String room = extractRoom(session);
@@ -51,6 +59,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
                         room, appConfig.getNodeId(), appConfig.getNodeId()));
     }
 
+    /** 웹소켓 연결 종료 시 세션 제거 및 퇴장 시스템 메시지 발행 */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         String room = (String) session.getAttributes().get("room");
@@ -64,6 +73,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         }
     }
 
+    /** 클라이언트 텍스트 수신 시 Redis 채널로 채팅 메시지 발행 */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         String room = (String) session.getAttributes().get("room");
@@ -76,6 +86,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
         }
     }
 
+    /** 현재 노드에 연결된 지정 방의 모든 세션에 로컬 텍스트 메시지 브로드캐스트 */
     public void broadcastLocally(String room, String message) {
         Set<WebSocketSession> sessions = rooms.get(room);
         if (sessions != null) {

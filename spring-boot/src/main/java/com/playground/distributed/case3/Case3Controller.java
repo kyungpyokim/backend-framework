@@ -8,10 +8,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Case 3: 실시간 분산 브로드캐스트 REST 컨트롤러.
+ * - HTTP POST 호출을 통해 특정 방(room)의 웹소켓 클라이언트들에게 외부 브로드캐스트
+ */
 @RestController
 @RequestMapping("/case3")
 public class Case3Controller {
 
+    /** 브로드캐스트 요청 불변 Record DTO (Null Object 패턴 적용) */
     public record BroadcastRequest(
             @JsonProperty("room_id") String roomId,
             @JsonProperty("sender") String sender,
@@ -38,6 +43,10 @@ public class Case3Controller {
         this.appConfig = appConfig;
     }
 
+    /**
+     * [HTTP 기반 브로드캐스트]
+     * 외부 시스템에서 HTTP 호출로 특정 방에 메시지를 발행하면 Redis Pub/Sub을 거쳐 모든 인스턴스의 웹소켓으로 전파됩니다.
+     */
     @PostMapping("/broadcast")
     public Map<String, Object> broadcast(@RequestBody(required = false) BroadcastRequest req) {
         var request = BroadcastRequest.ofNullable(req);
