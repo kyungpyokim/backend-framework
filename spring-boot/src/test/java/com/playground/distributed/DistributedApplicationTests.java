@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@SuppressWarnings({"null", "unchecked"})
 class DistributedApplicationTests {
 
     @Autowired private MockMvc mockMvc;
@@ -77,7 +78,6 @@ class DistributedApplicationTests {
                 .andExpect(status().isOk());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testCase1InventoryInit() throws Exception {
         ValueOperations<String, String> ops = mock(ValueOperations.class);
