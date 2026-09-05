@@ -1,9 +1,9 @@
 package com.playground.distributed.case1;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class DistributedLockService {
             Boolean acquired =
                     redisTemplate
                             .opsForValue()
-                            .setIfAbsent(lockKey, token, Duration.ofMillis(ttlMs));
+                            .setIfAbsent(lockKey, token, ttlMs, TimeUnit.MILLISECONDS);
             if (Boolean.TRUE.equals(acquired)) {
                 return token;
             }
