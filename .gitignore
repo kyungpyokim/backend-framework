@@ -23,3 +23,14 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+
+# Java / Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+

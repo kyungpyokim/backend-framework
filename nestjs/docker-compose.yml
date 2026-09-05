@@ -1,0 +1,48 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: nest-dist-redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+  api-node-1:
+    build: .
+    container_name: nest-api-node-1
+    environment:
+      - NODE_ID=nest-node-1
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3001:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  api-node-2:
+    build: .
+    container_name: nest-api-node-2
+    environment:
+      - NODE_ID=nest-node-2
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3002:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  lb:
+    image: nginx:alpine
+    container_name: nest-load-balancer
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api-node-1
+      - api-node-2

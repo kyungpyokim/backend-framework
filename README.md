@@ -7,11 +7,14 @@
 - [01. 시스템 아키텍처 개요 (`docs/01-architecture.md`)](./docs/01-architecture.md): 수평 확장, 무상태 API, 클러스터 토폴로지
 - [02. 분산 서버 4대 패턴 상세 (`docs/02-distributed-patterns.md`)](./docs/02-distributed-patterns.md): 분산 락, 작업 큐, 웹소켓 Pub/Sub, 서킷 브레이커
 - [03. 단계별 실습 가이드 (`docs/03-hands-on-guide.md`)](./docs/03-hands-on-guide.md): 1초 터미널 데모, Docker 클러스터 실습, curl 시나리오
+- [04. 3대 프레임워크 비교 분석 (`docs/04-framework-comparison.md`)](./docs/04-framework-comparison.md): FastAPI vs NestJS vs Spring Boot 1:1 비교
 
-## 📂 포함된 프로젝트
+## 📂 포함된 프로젝트 (3대 백엔드 프레임워크)
 
-- [FastAPI Distributed Playground](./fastapi):
-  - `uv` 기반 Python 3.12 패키지 및 가상환경 관리
-  - 4대 분산 아키텍처 케이스 구현
-  - Nginx + 다중 API 노드 + Redis + 분산 워커의 Docker Compose 클러스터
+| 프레임워크 | 경로 | 주요 기술 스택 | 클러스터 포트 (Nginx) |
+|---|---|---|---|
+| **FastAPI** | [`./fastapi`](./fastapi) | Python 3.12, `uv`, `redis.asyncio` | `http://localhost:8080` |
+| **NestJS** | [`./nestjs`](./nestjs) | TypeScript, Node.js 22, `ioredis`, `@nestjs/websockets` | `http://localhost:8081` |
+| **Spring Boot** | [`./spring-boot`](./spring-boot) | Java 21, Spring Boot 3.3, Gradle 8, Spring Data Redis | `http://localhost:8082` |
+
 
