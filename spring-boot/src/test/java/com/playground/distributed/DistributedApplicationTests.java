@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@SuppressWarnings({"null", "unchecked"})
 class DistributedApplicationTests {
 
     @Autowired private MockMvc mockMvc;
@@ -54,7 +53,7 @@ class DistributedApplicationTests {
         // 2. Inject Fault
         mockMvc.perform(
                         post("/case4/external/fault")
-                                .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .content("{\"is_healthy\": false}"))
                 .andExpect(status().isOk());
 
@@ -73,11 +72,12 @@ class DistributedApplicationTests {
         // 5. Restore Health
         mockMvc.perform(
                         post("/case4/external/fault")
-                                .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .content("{\"is_healthy\": true}"))
                 .andExpect(status().isOk());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testCase1InventoryInit() throws Exception {
         ValueOperations<String, String> ops = mock(ValueOperations.class);
@@ -85,7 +85,7 @@ class DistributedApplicationTests {
 
         mockMvc.perform(
                         post("/case1/inventory/init")
-                                .contentType(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .content("{\"item_id\": \"item-spring-1\", \"stock\": 10}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock").value(10));

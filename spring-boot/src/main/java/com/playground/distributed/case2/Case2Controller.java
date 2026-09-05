@@ -1,5 +1,6 @@
 package com.playground.distributed.case2;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.playground.distributed.config.AppConfig;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -13,8 +14,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case2")
-@SuppressWarnings({"null", "unchecked"})
 public class Case2Controller {
+
+    public record JobSubmitRequest(
+            @JsonProperty("task_type") String taskType,
+            @JsonProperty("payload") Map<String, Object> payload) {
+        public String resolveTaskType() {
+            return (taskType != null && !taskType.isBlank()) ? taskType : "heavy_computation";
+        }
+
+        public Map<String, Object> resolvePayload() {
+            return payload != null ? payload : Map.of("duration_sec", 1);
+        }
+    }
 
     private final JobQueueService queueService;
     private final AppConfig appConfig;
@@ -26,15 +38,10 @@ public class Case2Controller {
 
     @PostMapping("/jobs")
     public ResponseEntity<Map<String, Object>> submitJob(
-            @RequestBody(required = false) Map<String, Object> body) {
-        String taskType =
-                body != null && body.containsKey("task_type")
-                        ? (String) body.get("task_type")
-                        : "heavy_computation";
+            @RequestBody(required = false) JobSubmitRequest req) {
+        String taskType = req != null ? req.resolveTaskType() : "heavy_computation";
         Map<String, Object> payload =
-                body != null && body.containsKey("payload")
-                        ? (Map<String, Object>) body.get("payload")
-                        : Map.of("duration_sec", 1);
+                req != null ? req.resolvePayload() : Map.of("duration_sec", 1);
 
         String jobId = queueService.enqueueJob(taskType, payload);
 

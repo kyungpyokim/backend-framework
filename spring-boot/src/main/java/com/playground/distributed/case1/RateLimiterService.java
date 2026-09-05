@@ -10,7 +10,6 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 @Service
-@SuppressWarnings({"null", "unchecked"})
 public class RateLimiterService {
 
     private final StringRedisTemplate redisTemplate;
@@ -33,6 +32,7 @@ public class RateLimiterService {
 
     private final RedisScript<List<Long>> rateLimitScript;
 
+    @SuppressWarnings("unchecked")
     public RateLimiterService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
         DefaultRedisScript<?> script = new DefaultRedisScript<>(SLIDING_WINDOW_LUA, List.class);

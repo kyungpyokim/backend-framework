@@ -1,5 +1,6 @@
 package com.playground.distributed.case4;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.playground.distributed.config.AppConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,8 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case4")
-@SuppressWarnings("null")
 public class Case4Controller {
+
+    public record FaultRequest(@JsonProperty("is_healthy") Boolean isHealthy) {
+        public boolean resolveIsHealthy() {
+            return isHealthy != null ? isHealthy : true;
+        }
+    }
 
     private final ResilienceService resilienceService;
     private final AppConfig appConfig;
@@ -23,8 +29,8 @@ public class Case4Controller {
     }
 
     @PostMapping("/external/fault")
-    public Map<String, Object> setFault(@RequestBody(required = false) Map<String, Boolean> body) {
-        boolean healthy = body != null ? body.getOrDefault("is_healthy", true) : true;
+    public Map<String, Object> setFault(@RequestBody(required = false) FaultRequest req) {
+        boolean healthy = req != null ? req.resolveIsHealthy() : true;
         resilienceService.setHealthy(healthy);
         return Map.of(
                 "message",

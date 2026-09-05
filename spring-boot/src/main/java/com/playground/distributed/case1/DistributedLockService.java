@@ -9,7 +9,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 @Service
-@SuppressWarnings("null")
 public class DistributedLockService {
 
     private final StringRedisTemplate redisTemplate;

@@ -1,5 +1,6 @@
 package com.playground.distributed.case3;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.playground.distributed.config.AppConfig;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,8 +10,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case3")
-@SuppressWarnings("null")
 public class Case3Controller {
+
+    public record BroadcastRequest(
+            @JsonProperty("room_id") String roomId,
+            @JsonProperty("sender") String sender,
+            @JsonProperty("content") String content) {
+        public String resolveRoomId() {
+            return (roomId != null && !roomId.isBlank()) ? roomId : "general";
+        }
+
+        public String resolveSender() {
+            return (sender != null && !sender.isBlank()) ? sender : "anonymous";
+        }
+
+        public String resolveContent() {
+            return content != null ? content : "";
+        }
+    }
 
     private final RedisPubSubService pubSubService;
     private final AppConfig appConfig;
@@ -21,12 +38,10 @@ public class Case3Controller {
     }
 
     @PostMapping("/broadcast")
-    public Map<String, Object> broadcast(@RequestBody(required = false) Map<String, String> body) {
-        String roomId =
-                body != null && body.containsKey("room_id") ? body.get("room_id") : "general";
-        String sender =
-                body != null && body.containsKey("sender") ? body.get("sender") : "anonymous";
-        String content = body != null && body.containsKey("content") ? body.get("content") : "";
+    public Map<String, Object> broadcast(@RequestBody(required = false) BroadcastRequest req) {
+        String roomId = req != null ? req.resolveRoomId() : "general";
+        String sender = req != null ? req.resolveSender() : "anonymous";
+        String content = req != null ? req.resolveContent() : "";
 
         String msg =
                 String.format(
