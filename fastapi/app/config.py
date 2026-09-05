@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     app_name: str = "FastAPI Application"
     app_version: str = "0.1.0"
     debug: bool = False
+    node_id: str = "node-default"
+    redis_url: str = "redis://localhost:6379/0"
 
     # CORS
     allowed_origins: list[str] = ["*"]
