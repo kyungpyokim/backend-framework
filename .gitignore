@@ -3,7 +3,10 @@
 Thumbs.db
 
 # IDEs and Editors
-.idea/
+.idea/*
+!.idea/codeStyles/
+spring-boot/.idea/*
+!spring-boot/.idea/codeStyles/
 .vscode/
 *.swp
 *.swo
