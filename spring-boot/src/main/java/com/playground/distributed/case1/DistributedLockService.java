@@ -1,7 +1,6 @@
 package com.playground.distributed.case1;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -65,17 +64,16 @@ public class DistributedLockService {
         return val != null ? Integer.parseInt(val) : 0;
     }
 
-    public Map<String, Object> purchaseWithLock(String itemId, int quantity) {
+    public PurchaseResult purchaseWithLock(String itemId, int quantity) {
         String token = acquireLock("inventory:" + itemId, 5000, 20, 50);
         if (token == null) {
-            throw new RuntimeException("Lock acquisition timeout");
+            return PurchaseResult.TIMEOUT;
         }
 
         try {
             int currentStock = getInventory(itemId);
             if (currentStock < quantity) {
-                return Map.of(
-                        "success", false, "message", "Out of stock", "remaining", currentStock);
+                return PurchaseResult.outOfStock(currentStock);
             }
             // Artificial delay to simulate DB latency
             try {
@@ -84,16 +82,16 @@ public class DistributedLockService {
             }
             int newStock = currentStock - quantity;
             redisTemplate.opsForValue().set("stock:" + itemId, String.valueOf(newStock));
-            return Map.of("success", true, "message", "Purchase successful", "remaining", newStock);
+            return PurchaseResult.ok(newStock);
         } finally {
             releaseLock("inventory:" + itemId, token);
         }
     }
 
-    public Map<String, Object> purchaseWithoutLock(String itemId, int quantity) {
+    public PurchaseResult purchaseWithoutLock(String itemId, int quantity) {
         int currentStock = getInventory(itemId);
         if (currentStock < quantity) {
-            return Map.of("success", false, "message", "Out of stock", "remaining", currentStock);
+            return PurchaseResult.outOfStock(currentStock);
         }
         // Race condition window
         try {
@@ -102,6 +100,6 @@ public class DistributedLockService {
         }
         int newStock = currentStock - quantity;
         redisTemplate.opsForValue().set("stock:" + itemId, String.valueOf(newStock));
-        return Map.of("success", true, "message", "Purchase successful", "remaining", newStock);
+        return PurchaseResult.ok(newStock);
     }
 }

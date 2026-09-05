@@ -15,8 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class Case4Controller {
 
     public record FaultRequest(@JsonProperty("is_healthy") Boolean isHealthy) {
-        public boolean resolveIsHealthy() {
-            return isHealthy != null ? isHealthy : true;
+        public static final FaultRequest DEFAULT = new FaultRequest(true);
+
+        public FaultRequest {
+            isHealthy = isHealthy != null ? isHealthy : true;
+        }
+
+        public static FaultRequest ofNullable(FaultRequest req) {
+            return req != null ? req : DEFAULT;
         }
     }
 
@@ -30,13 +36,13 @@ public class Case4Controller {
 
     @PostMapping("/external/fault")
     public Map<String, Object> setFault(@RequestBody(required = false) FaultRequest req) {
-        boolean healthy = req != null ? req.resolveIsHealthy() : true;
-        resilienceService.setHealthy(healthy);
+        var request = FaultRequest.ofNullable(req);
+        resilienceService.setHealthy(request.isHealthy());
         return Map.of(
                 "message",
-                "External service healthy status set to: " + healthy,
+                "External service healthy status set to: " + request.isHealthy(),
                 "is_healthy",
-                healthy);
+                request.isHealthy());
     }
 
     @GetMapping("/call")

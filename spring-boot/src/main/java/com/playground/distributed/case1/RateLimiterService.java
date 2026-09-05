@@ -2,7 +2,6 @@ package com.playground.distributed.case1;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -39,7 +38,7 @@ public class RateLimiterService {
         this.rateLimitScript = (RedisScript<List<Long>>) script;
     }
 
-    public Map<String, Object> checkLimit(String clientId, int limit, int windowSeconds) {
+    public RateLimitResult checkLimit(String clientId, int limit, int windowSeconds) {
         String key = "ratelimit:" + clientId;
         long nowMs = System.currentTimeMillis();
         long windowMs = windowSeconds * 1000L;
@@ -54,9 +53,13 @@ public class RateLimiterService {
                         String.valueOf(limit),
                         uniqueMember);
 
-        boolean allowed = result != null && result.get(0) == 1L;
-        long remaining = result != null ? result.get(1) : 0L;
+        if (result == null || result.size() < 2) {
+            return RateLimitResult.BLOCKED;
+        }
 
-        return Map.of("allowed", allowed, "remaining", remaining);
+        boolean allowed = result.get(0) == 1L;
+        long remaining = result.get(1);
+
+        return RateLimitResult.of(allowed, remaining);
     }
 }

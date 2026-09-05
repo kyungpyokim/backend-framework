@@ -3,7 +3,6 @@ package com.playground.distributed.case1;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.playground.distributed.config.AppConfig;
 import java.util.Map;
-import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,23 +19,31 @@ public class Case1Controller {
 
     public record InventoryInitRequest(
             @JsonProperty("item_id") String itemId, @JsonProperty("stock") Integer stock) {
-        public String resolveItemId() {
-            return (itemId != null && !itemId.isBlank()) ? itemId : "item-1";
+
+        public static final InventoryInitRequest DEFAULT = new InventoryInitRequest("item-1", 10);
+
+        public InventoryInitRequest {
+            itemId = (itemId != null && !itemId.isBlank()) ? itemId : "item-1";
+            stock = (stock != null && stock >= 0) ? stock : 10;
         }
 
-        public int resolveStock() {
-            return (stock != null && stock >= 0) ? stock : 10;
+        public static InventoryInitRequest ofNullable(InventoryInitRequest req) {
+            return req != null ? req : DEFAULT;
         }
     }
 
     public record PurchaseRequest(
             @JsonProperty("item_id") String itemId, @JsonProperty("quantity") Integer quantity) {
-        public String resolveItemId() {
-            return (itemId != null && !itemId.isBlank()) ? itemId : "item-1";
+
+        public static final PurchaseRequest DEFAULT = new PurchaseRequest("item-1", 1);
+
+        public PurchaseRequest {
+            itemId = (itemId != null && !itemId.isBlank()) ? itemId : "item-1";
+            quantity = (quantity != null && quantity > 0) ? quantity : 1;
         }
 
-        public int resolveQuantity() {
-            return (quantity != null && quantity > 0) ? quantity : 1;
+        public static PurchaseRequest ofNullable(PurchaseRequest req) {
+            return req != null ? req : DEFAULT;
         }
     }
 
@@ -56,18 +63,13 @@ public class Case1Controller {
     @PostMapping("/inventory/init")
     public Map<String, Object> initInventory(
             @RequestBody(required = false) InventoryInitRequest req) {
-        String itemId = req != null ? req.resolveItemId() : "item-1";
-        int stock = req != null ? req.resolveStock() : 10;
-        lockService.initInventory(itemId, stock);
+        var request = InventoryInitRequest.ofNullable(req);
+        lockService.initInventory(request.itemId(), request.stock());
         return Map.of(
-                "node_id",
-                appConfig.getNodeId(),
-                "item_id",
-                itemId,
-                "stock",
-                stock,
-                "message",
-                "Inventory initialized");
+                "node_id", appConfig.getNodeId(),
+                "item_id", request.itemId(),
+                "stock", request.stock(),
+                "message", "Inventory initialized");
     }
 
     @GetMapping("/inventory/{itemId}")
@@ -82,56 +84,50 @@ public class Case1Controller {
     @PostMapping("/purchase/safe")
     public ResponseEntity<Map<String, Object>> purchaseSafe(
             @RequestBody(required = false) PurchaseRequest req) {
-        String itemId = req != null ? req.resolveItemId() : "item-1";
-        int quantity = req != null ? req.resolveQuantity() : 1;
+        var request = PurchaseRequest.ofNullable(req);
+        PurchaseResult res = lockService.purchaseWithLock(request.itemId(), request.quantity());
 
-        try {
-            Map<String, Object> res = lockService.purchaseWithLock(itemId, quantity);
-            return ResponseEntity.ok(
-                    Map.of(
-                            "node_id", appConfig.getNodeId(),
-                            "success", Objects.requireNonNullElse(res.get("success"), false),
-                            "message", Objects.requireNonNullElse(res.get("message"), ""),
-                            "remaining_stock",
-                                    Objects.requireNonNullElse(res.get("remaining"), 0)));
-        } catch (Exception e) {
+        if (!res.success() && res == PurchaseResult.TIMEOUT) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(Map.of("message", "Server busy, please retry in a moment"));
+                    .body(Map.of("message", res.message()));
         }
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "node_id", appConfig.getNodeId(),
+                        "success", res.success(),
+                        "message", res.message(),
+                        "remaining_stock", res.remainingStock()));
     }
 
     @PostMapping("/purchase/unsafe")
     public ResponseEntity<Map<String, Object>> purchaseUnsafe(
             @RequestBody(required = false) PurchaseRequest req) {
-        String itemId = req != null ? req.resolveItemId() : "item-1";
-        int quantity = req != null ? req.resolveQuantity() : 1;
-
-        Map<String, Object> res = lockService.purchaseWithoutLock(itemId, quantity);
+        var request = PurchaseRequest.ofNullable(req);
+        PurchaseResult res = lockService.purchaseWithoutLock(request.itemId(), request.quantity());
         return ResponseEntity.ok(
                 Map.of(
                         "node_id", appConfig.getNodeId(),
-                        "success", Objects.requireNonNullElse(res.get("success"), false),
-                        "message", Objects.requireNonNullElse(res.get("message"), ""),
-                        "remaining_stock", Objects.requireNonNullElse(res.get("remaining"), 0)));
+                        "success", res.success(),
+                        "message", res.message(),
+                        "remaining_stock", res.remainingStock()));
     }
 
     @GetMapping("/rate-limit")
     public ResponseEntity<Map<String, Object>> checkRateLimit(
             @RequestParam(defaultValue = "client-default") String client_id) {
-        Map<String, Object> res = rateLimiterService.checkLimit(client_id, 5, 10);
-        boolean allowed = Boolean.TRUE.equals(res.get("allowed"));
-        long remaining = res.get("remaining") instanceof Number n ? n.longValue() : 0L;
+        RateLimitResult res = rateLimiterService.checkLimit(client_id, 5, 10);
 
-        if (!allowed) {
+        if (!res.allowed()) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(Map.of("detail", "Rate limit exceeded. Remaining: " + remaining));
+                    .body(Map.of("detail", "Rate limit exceeded. Remaining: " + res.remaining()));
         }
 
         return ResponseEntity.ok(
                 Map.of(
                         "node_id", appConfig.getNodeId(),
                         "client_id", client_id,
-                        "allowed", allowed,
-                        "remaining_requests", remaining));
+                        "allowed", res.allowed(),
+                        "remaining_requests", res.remaining()));
     }
 }

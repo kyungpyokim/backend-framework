@@ -16,16 +16,17 @@ public class Case3Controller {
             @JsonProperty("room_id") String roomId,
             @JsonProperty("sender") String sender,
             @JsonProperty("content") String content) {
-        public String resolveRoomId() {
-            return (roomId != null && !roomId.isBlank()) ? roomId : "general";
+        public static final BroadcastRequest DEFAULT =
+                new BroadcastRequest("general", "anonymous", "");
+
+        public BroadcastRequest {
+            roomId = (roomId != null && !roomId.isBlank()) ? roomId : "general";
+            sender = (sender != null && !sender.isBlank()) ? sender : "anonymous";
+            content = content != null ? content : "";
         }
 
-        public String resolveSender() {
-            return (sender != null && !sender.isBlank()) ? sender : "anonymous";
-        }
-
-        public String resolveContent() {
-            return content != null ? content : "";
+        public static BroadcastRequest ofNullable(BroadcastRequest req) {
+            return req != null ? req : DEFAULT;
         }
     }
 
@@ -39,18 +40,21 @@ public class Case3Controller {
 
     @PostMapping("/broadcast")
     public Map<String, Object> broadcast(@RequestBody(required = false) BroadcastRequest req) {
-        String roomId = req != null ? req.resolveRoomId() : "general";
-        String sender = req != null ? req.resolveSender() : "anonymous";
-        String content = req != null ? req.resolveContent() : "";
+        var request = BroadcastRequest.ofNullable(req);
 
         String msg =
                 String.format(
                         "{\"type\":\"broadcast\",\"sender\":\"%s\",\"content\":\"%s\",\"origin_node\":\"%s\"}",
-                        sender, content, appConfig.getNodeId());
+                        request.sender(), request.content(), appConfig.getNodeId());
 
-        pubSubService.publish(roomId, msg);
+        pubSubService.publish(request.roomId(), msg);
 
         return Map.of(
-                "status", "published", "room_id", roomId, "origin_node", appConfig.getNodeId());
+                "status",
+                "published",
+                "room_id",
+                request.roomId(),
+                "origin_node",
+                appConfig.getNodeId());
     }
 }

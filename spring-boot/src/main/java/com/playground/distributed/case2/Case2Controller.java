@@ -19,12 +19,16 @@ public class Case2Controller {
     public record JobSubmitRequest(
             @JsonProperty("task_type") String taskType,
             @JsonProperty("payload") Map<String, Object> payload) {
-        public String resolveTaskType() {
-            return (taskType != null && !taskType.isBlank()) ? taskType : "heavy_computation";
+        public static final JobSubmitRequest DEFAULT =
+                new JobSubmitRequest("heavy_computation", Map.of("duration_sec", 1));
+
+        public JobSubmitRequest {
+            taskType = (taskType != null && !taskType.isBlank()) ? taskType : "heavy_computation";
+            payload = payload != null ? payload : Map.of("duration_sec", 1);
         }
 
-        public Map<String, Object> resolvePayload() {
-            return payload != null ? payload : Map.of("duration_sec", 1);
+        public static JobSubmitRequest ofNullable(JobSubmitRequest req) {
+            return req != null ? req : DEFAULT;
         }
     }
 
@@ -39,11 +43,8 @@ public class Case2Controller {
     @PostMapping("/jobs")
     public ResponseEntity<Map<String, Object>> submitJob(
             @RequestBody(required = false) JobSubmitRequest req) {
-        String taskType = req != null ? req.resolveTaskType() : "heavy_computation";
-        Map<String, Object> payload =
-                req != null ? req.resolvePayload() : Map.of("duration_sec", 1);
-
-        String jobId = queueService.enqueueJob(taskType, payload);
+        var request = JobSubmitRequest.ofNullable(req);
+        String jobId = queueService.enqueueJob(request.taskType(), request.payload());
 
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(
