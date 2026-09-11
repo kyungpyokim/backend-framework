@@ -8,6 +8,7 @@
 - [02. 분산 서버 4대 패턴 상세 (`docs/02-distributed-patterns.md`)](./docs/02-distributed-patterns.md): 분산 락, 작업 큐, 웹소켓 Pub/Sub, 서킷 브레이커
 - [03. 단계별 실습 가이드 (`docs/03-hands-on-guide.md`)](./docs/03-hands-on-guide.md): 1초 터미널 데모, Docker 클러스터 실습, curl 시나리오
 - [04. 3대 프레임워크 비교 분석 (`docs/04-framework-comparison.md`)](./docs/04-framework-comparison.md): FastAPI vs NestJS vs Spring Boot 1:1 비교
+- [05. Production Agent Engineering 12주 학습 계획서 (`docs/05-production-agent-engineering.md`)](./docs/05-production-agent-engineering.md): 프레임워크 종속 탈피, 70/20/10 원칙, Agent Loop/Runtime/Evals/MCP/Security 실습 로드맵
 
 ## 📂 포함된 프로젝트 (3대 백엔드 프레임워크)
 
